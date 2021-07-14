@@ -1,11 +1,14 @@
 package com.user.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +22,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.user.exception.UserExistsException;
 import com.user.model.User;
 import com.user.service.UserService;
 
@@ -63,9 +68,29 @@ public class UserServiceControllerTest {
 						.content(mapper.writeValueAsString(userOne))) /* Conversion of the userOne Object into JSON */
 						.andExpect(status().isOk()).andDo(MockMvcResultHandlers.print()).andReturn();
 
-		assertTrue(mvcResult.getResponse().getContentAsString().equals("User Registered :1"));
-		
+		//assertTrue(mvcResult.getResponse().getContentAsString().equals("User Registered :1"));
+		assertEquals("User Registered :1", mvcResult.getResponse().getContentAsString());
 		verify(service).registerUser(any(User.class));
+	}
+	
+	@Test
+	public void givenUserDetailsWhenUserExistsThenReturnConflictStatus() throws Exception {
+        // Setup the mock bean behaviour
+        when(service.registerUser(any(User.class))).thenThrow(UserExistsException.class);
+        // send the request to the endpoint
+        // verify the status code returned
+        mvc.perform(post(REGISTER_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(userOne)))
+                .andExpect(status().isConflict());
+
+        verify(service).registerUser(any(User.class));
+
+    }
+
+	public void givenUserDetailsWhenUserCredentialsValidThenReturnToken() {
+		
+		when(service.authenticate(any(User.class))).thenReturn(Map.of("token","secret-token"));
 	}
 
 }
