@@ -27,6 +27,7 @@ public class UserServiceController {
 	@PostMapping("/register")
     public String registerUser(@RequestBody User user) throws UserExistsException{
 
+		System.out.println("Entering register function");
         User registeredUser = service.registerUser(user);
         return String.join(":", "User Registered ", registeredUser.getUserId().toString());
 

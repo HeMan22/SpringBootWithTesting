@@ -31,6 +31,8 @@ public class UserServiceImpl implements UserService{
     @Override
     public User registerUser(User user) throws UserExistsException {
 
+    	System.out.println("user Service");
+    	
         boolean userExists = repository.existsByEmail(user.getEmail());
         if(userExists) {
             throw new UserExistsException("User with email: "+user.getEmail()+" already exists.");
